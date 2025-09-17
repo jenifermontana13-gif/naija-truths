@@ -596,7 +596,7 @@ async function loadArticle() {
         console.warn('Article image element not found');
       }
 
-      articleMeta.textContent = `By Anonymous on ${formatTimestamp(article.createdAt)}`;
+      articleMeta.textContent = `By ${article.writer || 'Anonymous'} on ${formatTimestamp(article.createdAt)}`;
 
       if (articleContent) {
         articleContent.innerHTML = article.content || 'No content available';
@@ -828,6 +828,7 @@ if (articleForm) {
     }
     const id = document.getElementById('article-id').value;
     const title = document.getElementById('article-title-input').value;
+    const writer = document.getElementById('article-writer-input').value.trim(); // New writer field
     const summary = document.getElementById('article-summary-input').value;
     const content = quill ? quill.root.innerHTML : document.getElementById('article-content-input')?.value || '';
     const imageUrl = document.getElementById('article-image-input').value;
@@ -860,6 +861,7 @@ if (articleForm) {
     const article = {
       title,
       title_lowercase: title.toLowerCase(),
+      writer: writer || '', // Store empty string if no writer provided
       summary,
       content,
       image: imageUrl || '',
@@ -899,6 +901,7 @@ const previewButton = document.getElementById('preview-button');
 if (previewButton) {
   previewButton.addEventListener('click', () => {
     const title = document.getElementById('article-title-input').value;
+    const writer = document.getElementById('article-writer-input').value.trim(); // New writer field
     const summary = document.getElementById('article-summary-input').value;
     const content = quill ? quill.root.innerHTML : document.getElementById('article-content-input')?.value || '';
     const image = document.getElementById('article-image-input').value;
@@ -929,6 +932,7 @@ if (previewButton) {
     }
 
     document.getElementById('preview-title').textContent = title;
+    document.getElementById('preview-writer').textContent = `By ${writer || 'Anonymous'}`; // Display writer or Anonymous
     document.getElementById('preview-summary').textContent = summary;
     document.getElementById('preview-content').innerHTML = content;
     document.getElementById('preview-category').textContent = category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -999,6 +1003,7 @@ async function loadAdminArticles() {
       articleElement.classList.add('news-card');
       articleElement.innerHTML = `
         <h3>${article.title || 'Untitled Article'}</h3>
+        <p class="article-writer">By ${article.writer || 'Anonymous'}</p>
         <p>${article.summary || 'No summary available'}</p>
         <p>${article.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
         <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -1018,6 +1023,7 @@ async function loadAdminArticles() {
           const article = docSnap.data();
           document.getElementById('article-id').value = articleId;
           document.getElementById('article-title-input').value = article.title || '';
+          document.getElementById('article-writer-input').value = article.writer || ''; // Populate writer field
           document.getElementById('article-summary-input').value = article.summary || '';
           if (quill) {
             quill.root.innerHTML = article.content || '';
@@ -1093,6 +1099,7 @@ async function searchAdminArticles() {
       articleElement.classList.add('news-card');
       articleElement.innerHTML = `
         <h3>${article.title || 'Untitled Article'}</h3>
+        <p class="article-writer">By ${article.writer || 'Anonymous'}</p>
         <p>${article.summary || 'No summary available'}</p>
         <p>${article.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
         <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -1114,6 +1121,7 @@ async function searchAdminArticles() {
           const article = docSnap.data();
           document.getElementById('article-id').value = articleId;
           document.getElementById('article-title-input').value = article.title || '';
+          document.getElementById('article-writer-input').value = article.writer || ''; // Populate writer field
           document.getElementById('article-summary-input').value = article.summary || '';
           if (quill) {
             quill.root.innerHTML = article.content || '';

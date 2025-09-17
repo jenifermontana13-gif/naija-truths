@@ -20,6 +20,7 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js"></script>
   <script>
+    // Define environment variables for local testing
     window.env = window.env || {};
     window.env.VITE_FIREBASE_API_KEY = 'AIzaSyDrzSgCHn53kfa4dJJVJhDD717v8SPozR0';
     window.env.VITE_FIREBASE_AUTH_DOMAIN = 'naija-truths.firebaseapp.com';
@@ -35,37 +36,21 @@
   <div id="preloader">
     <div class="spinner"></div>
   </div>
-  <noscript>
-    <div class="no-js">
-      <header class="header">
-        <div class="logo-container">
-          <img src="naija-truth.jpg" alt="Naija Truths Header" class="header-image">
-        </div>
-      </header>
-      <div class="content">
-        <h1>Naija Truths</h1>
-        <p>Please enable JavaScript to access the admin login and manage website content.</p>
-      </div>
-      <footer class="wave-footer">
-        <div class="footer-content">
-          <div class="contact-us">
-            <h3>Contact Us</h3>
-            <div class="social-icons">
-              <a href="https://www.facebook.com/naija.truth?mibextid=rS40aB7S9Ucbxw6v" target="_blank">Facebook</a>
-              <a href="https://chat.whatsapp.com/GYieIfSv5tz79nIpr5WY5a" target="_blank">WhatsApp</a>
-              <a href="https://x.com/NaijaTruths" target="_blank">X</a>
-              <a href="tel:+2347039813110">Phone</a>
-              <a href="mailto:info@naijatruths.com">Email</a>
-            </div>
-          </div>
-          <p class="footer-copy">© 2025 Naija Truths. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
-  </noscript>
   <header class="header">
-    <div class="logo-container">
-      <img src="naija-truth.jpg" alt="Naija Truths Header" class="header-image">
+    <div class="logo">
+      <svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ntGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#28a745;stop-opacity:1" />
+          </linearGradient>
+          <filter id="shadow">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
+          </filter>
+        </defs>
+        <text x="10" y="50" font-family="Bebas Neue, sans-serif" font-weight="900" font-size="56" fill="url(#ntGradient)" stroke="#28a745" stroke-width="3" letter-spacing="-4" class="logo-text" filter="url(#shadow)">NT</text>
+      </svg>
+      <span class="site-title">Naija Truths</span>
     </div>
   </header>
   <main>
