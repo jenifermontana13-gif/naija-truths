@@ -128,8 +128,7 @@ async function loadArticles() {
   }
   const sections = [
     { selector: '.breaking-news-card', collection: 'articles', limit: 1, filter: { breakingNews: true }, orderBy: { field: 'createdAt', direction: 'desc' } },
-    { selector: '.fact-check-card', collection: 'articles', limit: 2, filter: { category: 'fact-check', verified: true } },
-    { selector: '#trending-list', collection: 'articles', limit: 5, filter: null, orderBy: { field: 'views', direction: 'desc' } }
+    { selector: '.fact-check-card', collection: 'articles', limit: 2, filter: { category: 'fact-check', verified: true } }
   ];
 
   for (const { selector, collection: coll, limit: lim, filter, orderBy: sort } of sections) {
@@ -200,8 +199,6 @@ async function loadArticles() {
               element.dataset.placeholder = 'false';
             });
           }
-        } else if (selector === '#trending-list') {
-          elements[0].innerHTML = '<li>No trending stories available.</li>';
         } else {
           elements.forEach(element => {
             element.innerHTML = '<p>No articles available.</p>';
@@ -276,13 +273,9 @@ async function loadArticles() {
           }
           element.dataset.placeholder = 'false';
           index++;
-        } else if (selector === '#trending-list') {
-          const li = document.createElement('li');
-          li.innerHTML = `<a href="article.html?id=${doc.id}">${article.title || 'Untitled Article'}</a>`;
-          element.appendChild(li);
         }
       });
-      while (index < elements.length && selector !== '#trending-list') {
+      while (index < elements.length) {
         elements[index].innerHTML = '<p>No articles available.</p>';
         elements[index].dataset.placeholder = 'false';
         index++;
@@ -388,17 +381,17 @@ async function fetchPoliticsArticles(reset = false) {
 }
 
 // Load latest news articles
-async function loadLatestNewsArticles() {
+async function loadLatestNewsArticles(category = '') {
   const latestNewsArticles = document.getElementById('latest-news-articles');
   const loadMoreButton = document.querySelector('.latest-news .load-more-button');
   if (!db || !latestNewsArticles) return;
 
   lastVisibleLatest = null;
   latestNewsArticles.innerHTML = '';
-  await fetchLatestNewsArticles(true, loadMoreButton);
+  await fetchLatestNewsArticles(true, loadMoreButton, category);
 }
 
-async function fetchLatestNewsArticles(reset = false, loadMoreButton) {
+async function fetchLatestNewsArticles(reset = false, loadMoreButton, category = '') {
   const latestNewsArticles = document.getElementById('latest-news-articles');
   if (!db || !latestNewsArticles) return;
 
@@ -412,6 +405,14 @@ async function fetchLatestNewsArticles(reset = false, loadMoreButton) {
     orderBy('createdAt', 'desc'),
     limit(articlesPerPage)
   );
+  if (category) {
+    q = query(
+      collection(db, 'articles'),
+      where('category', '==', category),
+      orderBy('createdAt', 'desc'),
+      limit(articlesPerPage)
+    );
+  }
   if (lastVisibleLatest) q = query(q, startAfter(lastVisibleLatest));
 
   try {
@@ -1026,8 +1027,8 @@ async function loadAdminArticles() {
           document.getElementById('article-image-input').value = article.image || '';
           document.getElementById('article-video-input').value = article.video || '';
           document.getElementById('article-category-input').value = article.category || '';
-          document.getElementById('article-breaking-news-input').checked = !!article.breakingNews; // Ensure boolean
-          document.getElementById('article-verified-input').checked = !!article.verified; // Ensure boolean
+          document.getElementById('article-breaking-news-input').checked = !!article.breakingNews;
+          document.getElementById('article-verified-input').checked = !!article.verified;
         } catch (error) {
           console.error('Error loading article for editing:', error.message);
           displayErrorMessage('#article-list', 'Failed to load article for editing. Please try again.');
@@ -1042,6 +1043,102 @@ async function loadAdminArticles() {
     });
   } catch (error) {
     console.error('Error loading admin articles:', error.message);
+    displayErrorMessage('#article-list', 'Failed to load articles. Please try again.');
+  }
+}
+
+// Search admin articles
+async function searchAdminArticles() {
+  const searchInput = document.getElementById('article-search-input').value.trim();
+  const articleList = document.getElementById('article-list');
+  if (!db || !articleList) return;
+
+  articleList.innerHTML = '<p>Loading articles...</p>';
+
+  try {
+    let q;
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (datePattern.test(searchInput)) {
+      // Search by date
+      const startDate = new Date(searchInput);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1); // Include the entire day
+      q = query(
+        collection(db, 'articles'),
+        where('createdAt', '>=', startDate),
+        where('createdAt', '<', endDate),
+        orderBy('createdAt', 'desc')
+      );
+    } else {
+      // Search by title
+      q = query(
+        collection(db, 'articles'),
+        where('title_lowercase', '>=', searchInput.toLowerCase()),
+        where('title_lowercase', '<=', searchInput.toLowerCase() + '\uf8ff'),
+        orderBy('title_lowercase'),
+        orderBy('createdAt', 'desc')
+      );
+    }
+
+    const snapshot = await withRetry(() => getDocs(q));
+    articleList.innerHTML = '';
+    if (snapshot.empty) {
+      articleList.innerHTML = '<p>No articles found.</p>';
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const article = doc.data();
+      const articleElement = document.createElement('div');
+      articleElement.classList.add('news-card');
+      articleElement.innerHTML = `
+        <h3>${article.title || 'Untitled Article'}</h3>
+        <p>${article.summary || 'No summary available'}</p>
+        <p>${article.category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
+        <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
+        ${article.breakingNews ? '<span class="breaking-news-badge">Breaking News</span>' : ''}
+        ${article.verified ? '<span class="verified-badge">Verified</span>' : ''}
+        <button class="edit-button" data-id="${doc.id}">Edit</button>
+        <button class="delete-button" data-id="${doc.id}">Delete</button>
+      `;
+      articleList.appendChild(articleElement);
+    });
+
+    // Re-attach event listeners for edit and delete buttons
+    document.querySelectorAll('.edit-button').forEach(button => {
+      button.addEventListener('click', async () => {
+        const articleId = button.dataset.id;
+        const docRef = doc(db, 'articles', articleId);
+        try {
+          const docSnap = await withRetry(() => getDoc(docRef));
+          const article = docSnap.data();
+          document.getElementById('article-id').value = articleId;
+          document.getElementById('article-title-input').value = article.title || '';
+          document.getElementById('article-summary-input').value = article.summary || '';
+          if (quill) {
+            quill.root.innerHTML = article.content || '';
+          } else {
+            document.getElementById('article-content-input').value = article.content || '';
+          }
+          document.getElementById('article-image-input').value = article.image || '';
+          document.getElementById('article-video-input').value = article.video || '';
+          document.getElementById('article-category-input').value = article.category || '';
+          document.getElementById('article-breaking-news-input').checked = !!article.breakingNews;
+          document.getElementById('article-verified-input').checked = !!article.verified;
+        } catch (error) {
+          console.error('Error loading article for editing:', error.message);
+          displayErrorMessage('#article-list', 'Failed to load article for editing. Please try again.');
+        }
+      });
+    });
+    document.querySelectorAll('.delete-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const articleId = button.dataset.id;
+        deleteArticle(articleId);
+      });
+    });
+  } catch (error) {
+    console.error('Error searching admin articles:', error.message);
     displayErrorMessage('#article-list', 'Failed to load articles. Please try again.');
   }
 }
@@ -1155,7 +1252,9 @@ if (loadMoreLatestButton) {
   loadMoreLatestButton.addEventListener('click', async () => {
     loadMoreLatestButton.disabled = true;
     loadMoreLatestButton.textContent = 'Loading...';
-    await fetchLatestNewsArticles(false, loadMoreLatestButton);
+    const categoryFilter = document.getElementById('category-filter');
+    const selectedCategory = categoryFilter ? categoryFilter.value : '';
+    await fetchLatestNewsArticles(false, loadMoreLatestButton, selectedCategory);
     loadMoreLatestButton.disabled = false;
     loadMoreLatestButton.textContent = 'Load More';
   });
@@ -1173,6 +1272,16 @@ if (loadMoreCategoryButton) {
     }
     loadMoreCategoryButton.disabled = false;
     loadMoreCategoryButton.textContent = 'Load More';
+  });
+}
+
+// Category filter for latest news
+const categoryFilter = document.getElementById('category-filter');
+if (categoryFilter) {
+  categoryFilter.addEventListener('change', async () => {
+    const selectedCategory = categoryFilter.value;
+    console.log('Category filter changed to:', selectedCategory);
+    await loadLatestNewsArticles(selectedCategory);
   });
 }
 
@@ -1294,6 +1403,20 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('admin-content').style.display = 'block';
               document.getElementById('logout-button').style.display = 'inline-block';
               loadAdminArticles();
+              // Add event listeners for search and clear buttons
+              const searchButton = document.getElementById('article-search-button');
+              const clearButton = document.getElementById('article-search-clear');
+              if (searchButton) {
+                searchButton.addEventListener('click', () => {
+                  searchAdminArticles();
+                });
+              }
+              if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                  document.getElementById('article-search-input').value = '';
+                  loadAdminArticles(); // Reset to full article list
+                });
+              }
             } else {
               window.location.href = 'index.html';
             }
