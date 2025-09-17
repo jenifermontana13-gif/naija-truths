@@ -20,7 +20,6 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js"></script>
   <script>
-    // Define environment variables for local testing
     window.env = window.env || {};
     window.env.VITE_FIREBASE_API_KEY = 'AIzaSyDrzSgCHn53kfa4dJJVJhDD717v8SPozR0';
     window.env.VITE_FIREBASE_AUTH_DOMAIN = 'naija-truths.firebaseapp.com';
@@ -39,20 +38,8 @@
   <noscript>
     <div class="no-js">
       <header class="header">
-        <div class="logo">
-          <svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="ntGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#28a745;stop-opacity:1" />
-              </linearGradient>
-              <filter id="shadow">
-                <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
-              </filter>
-            </defs>
-            <text x="10" y="50" font-family="Bebas Neue, sans-serif" font-weight="900" font-size="56" fill="url(#ntGradient)" stroke="#28a745" stroke-width="3" letter-spacing="-4" filter="url(#shadow)">NT</text>
-          </svg>
-          <span class="site-title">Naija Truths</span>
+        <div class="logo-container">
+          <img src="naija-truth.jpg" alt="Naija Truths Header" class="header-image">
         </div>
       </header>
       <div class="content">
@@ -91,20 +78,8 @@
     </div>
   </noscript>
   <header class="header">
-    <div class="logo">
-      <svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="ntGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#28a745;stop-opacity:1" />
-          </linearGradient>
-          <filter id="shadow">
-            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.5"/>
-          </filter>
-        </defs>
-        <text x="10" y="50" font-family="Bebas Neue, sans-serif" font-weight="900" font-size="56" fill="url(#ntGradient)" stroke="#28a745" stroke-width="3" letter-spacing="-4" class="logo-text" filter="url(#shadow)">NT</text>
-      </svg>
-      <span class="site-title">Naija Truths</span>
+    <div class="logo-container">
+      <img src="naija-truth.jpg" alt="Naija Truths Header" class="header-image">
     </div>
     <form class="search-form" role="search" action="search.html">
       <input type="search" id="search-input" name="q" placeholder="Search articles..." aria-label="Search articles">
@@ -141,7 +116,6 @@
             <a href="category.html?cat=columns">Columns</a>
             <a href="category.html?cat=infographics">Infographics</a>
             <a href="category.html?cat=videos-documentaries">Videos & Documentaries</a>
-            <a href="category.html?cat=trending-stories">Trending Stories</a>
           </div>
         </li>
       </ul>
@@ -169,7 +143,6 @@
         <li><a href="category.html?cat=columns">Columns</a></li>
         <li><a href="category.html?cat=infographics">Infographics</a></li>
         <li><a href="category.html?cat=videos-documentaries">Videos & Documentaries</a></li>
-        <li><a href="category.html?cat=trending-stories">Trending Stories</a></li>
       </ul>
     </nav>
   </header>
@@ -199,16 +172,6 @@
           <noscript><p>Please enable JavaScript to view politics articles.</p></noscript>
         </div>
         <a href="category.html?cat=politics" class="view-more">View More Politics</a>
-      </div>
-    </section>
-    <section class="trending" id="trending">
-      <div class="content">
-        <h2>Trending Stories</h2>
-        <div class="trending-widget">
-          <ul id="trending-list" role="region" aria-live="polite">
-            <noscript><li>Please enable JavaScript to view trending stories.</li></noscript>
-          </ul>
-        </div>
       </div>
     </section>
     <section class="fact-check" id="fact-check">
@@ -262,7 +225,6 @@
           <option value="columns">Columns</option>
           <option value="infographics">Infographics</option>
           <option value="videos-documentaries">Videos & Documentaries</option>
-          <option value="trending-stories">Trending Stories</option>
         </select>
         <div class="news-grid" id="latest-news-articles" role="region" aria-live="polite">
           <article class="news-card" data-placeholder="true">
