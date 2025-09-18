@@ -169,11 +169,13 @@ async function loadArticles() {
               img.src = ''; // Clear src to avoid stale images
               img.src = imageUrl;
               img.alt = article.title || 'Article Image';
-              img.removeAttribute('srcset');
-              img.removeAttribute('sizes');
+              img.srcset = `${imageUrl} 400w, ${imageUrl} 200w`;
+              img.sizes = '(max-width: 767px) 200px, 400px';
               img.onerror = () => {
                 console.warn(`Fallback image failed to load for article ID: ${docId}, URL: ${imageUrl}`);
                 img.src = 'https://via.placeholder.com/400x200';
+                img.srcset = 'https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w';
+                img.sizes = '(max-width: 767px) 200px, 400px';
               };
               img.onload = () => {
                 console.log(`Fallback image loaded successfully for article ID: ${docId}, URL: ${img.src}`);
@@ -220,14 +222,13 @@ async function loadArticles() {
           img.src = ''; // Clear src to avoid stale images
           img.src = imageUrl;
           img.alt = article.title || 'Article Image';
-          // Remove srcset and sizes for Breaking News and Fact Check to simplify
-          if (selector === '.breaking-news-card' || selector === '.fact-check-card') {
-            img.removeAttribute('srcset');
-            img.removeAttribute('sizes');
-          }
+          img.srcset = `${imageUrl} 400w, ${imageUrl} 200w`;
+          img.sizes = '(max-width: 767px) 200px, 400px';
           img.onerror = () => {
             console.warn(`Image failed to load for article ID: ${doc.id}, URL: ${imageUrl}`);
             img.src = 'https://via.placeholder.com/400x200';
+            img.srcset = 'https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w';
+            img.sizes = '(max-width: 767px) 200px, 400px';
           };
           img.onload = () => {
             console.log(`Image loaded successfully for article ID: ${doc.id}, URL: ${img.src}`);
@@ -236,14 +237,12 @@ async function loadArticles() {
           link.setAttribute('href', `article.html?id=${doc.id}`);
           link.querySelector('h2, h3').textContent = article.title || 'Untitled Article';
           link.querySelector('p').textContent = article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available');
-          // Add publication time
           const timeElement = link.querySelector('.article-time') || document.createElement('p');
           timeElement.classList.add('article-time');
           timeElement.textContent = `Posted: ${formatTimestamp(article.createdAt)}`;
           if (!link.querySelector('.article-time')) {
             link.appendChild(timeElement);
           }
-          // Handle Breaking News badge
           if (article.breakingNews && element.classList.contains('breaking-news-card')) {
             let badge = element.querySelector('.breaking-news-badge');
             if (!badge) {
@@ -252,12 +251,11 @@ async function loadArticles() {
               badge.textContent = 'Breaking News';
               link.appendChild(badge);
             }
-            badge.style.display = 'block'; // Ensure badge is visible
+            badge.style.display = 'block';
           } else {
             const badge = element.querySelector('.breaking-news-badge');
             if (badge) badge.style.display = 'none';
           }
-          // Handle Verified badge
           if (article.verified && element.classList.contains('fact-check-card')) {
             let badge = element.querySelector('.verified-badge');
             if (!badge) {
@@ -294,7 +292,6 @@ async function loadArticles() {
     }
   }
 
-  // Update meta tags for breaking news
   const breakingNewsQuery = query(collection(db, 'articles'), where('breakingNews', '==', true), orderBy('createdAt', 'desc'), limit(1));
   try {
     const snapshot = await withRetry(() => getDocs(breakingNewsQuery));
@@ -359,9 +356,11 @@ async function fetchPoliticsArticles(reset = false) {
       articleElement.innerHTML = `
         <a href="article.html?id=${doc.id}" class="article-link">
           <img src="${imageUrl}" 
-               srcset="${article.image && isValidUrl(article.image) ? `${article.image} 400w, ${article.image} 200w` : 'https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'}" 
+               srcset="${imageUrl} 400w, ${imageUrl} 200w" 
                sizes="(max-width: 767px) 200px, 400px" 
-               alt="${article.title || 'Article Image'}" loading="lazy">
+               alt="${article.title || 'Article Image'}" 
+               loading="lazy"
+               onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
           <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -433,9 +432,11 @@ async function fetchLatestNewsArticles(reset = false, loadMoreButton, category =
       articleElement.innerHTML = `
         <a href="article.html?id=${doc.id}" class="article-link">
           <img src="${imageUrl}" 
-               srcset="${article.image && isValidUrl(article.image) ? `${article.image} 400w, ${article.image} 200w` : 'https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'}" 
+               srcset="${imageUrl} 400w, ${imageUrl} 200w" 
                sizes="(max-width: 767px) 200px, 400px" 
-               alt="${article.title || 'Article Image'}" loading="lazy">
+               alt="${article.title || 'Article Image'}" 
+               loading="lazy"
+               onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
           <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -513,7 +514,11 @@ async function fetchCategoryArticles(category, reset = false) {
       articleElement.innerHTML = `
         <a href="article.html?id=${doc.id}" class="article-link">
           <img src="${imageUrl}" 
-               alt="${article.title || 'Article Image'}" loading="lazy">
+               srcset="${imageUrl} 400w, ${imageUrl} 200w" 
+               sizes="(max-width: 767px) 200px, 400px" 
+               alt="${article.title || 'Article Image'}" 
+               loading="lazy"
+               onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
           <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -582,14 +587,22 @@ async function loadArticle() {
       if (articleImage) {
         if (article.image && isValidUrl(article.image)) {
           articleImage.src = article.image;
+          articleImage.srcset = `${article.image} 1200w, ${article.image} 768w, ${article.image} 480w`;
+          articleImage.sizes = '(max-width: 480px) 100vw, (max-width: 768px) 80vw, 800px';
+          articleImage.alt = article.title || 'Article Image';
           articleImage.style.display = 'block';
-          articleImage.addEventListener('error', () => {
+          articleImage.onerror = () => {
             console.warn(`Article image failed to load for ID: ${articleId}, URL: ${article.image}`);
             articleImage.src = 'https://via.placeholder.com/800x400';
+            articleImage.srcset = 'https://via.placeholder.com/400x200 480w, https://via.placeholder.com/800x400 768w, https://via.placeholder.com/1200x600 1200w';
+            articleImage.sizes = '(max-width: 480px) 100vw, (max-width: 768px) 80vw, 800px';
             articleImage.style.display = 'block';
-          });
+          };
         } else {
           articleImage.src = 'https://via.placeholder.com/800x400';
+          articleImage.srcset = 'https://via.placeholder.com/400x200 480w, https://via.placeholder.com/800x400 768w, https://via.placeholder.com/1200x600 1200w';
+          articleImage.sizes = '(max-width: 480px) 100vw, (max-width: 768px) 80vw, 800px';
+          articleImage.alt = 'Article Image';
           articleImage.style.display = 'block';
         }
       } else {
@@ -764,7 +777,12 @@ async function loadSearchResults() {
       articleElement.classList.add('news-card');
       articleElement.innerHTML = `
         <a href="article.html?id=${doc.id}" class="article-link">
-          <img src="${article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200'}" alt="${article.title || 'Article Image'}" loading="lazy">
+          <img src="${article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200'}" 
+               srcset="${article.image && isValidUrl(article.image) ? `${article.image} 400w, ${article.image} 200w` : 'https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'}" 
+               sizes="(max-width: 767px) 200px, 400px" 
+               alt="${article.title || 'Article Image'}" 
+               loading="lazy"
+               onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
           <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
@@ -828,7 +846,7 @@ if (articleForm) {
     }
     const id = document.getElementById('article-id').value;
     const title = document.getElementById('article-title-input').value;
-    const writer = document.getElementById('article-writer-input').value.trim(); // New writer field
+    const writer = document.getElementById('article-writer-input').value.trim();
     const summary = document.getElementById('article-summary-input').value;
     const content = quill ? quill.root.innerHTML : document.getElementById('article-content-input')?.value || '';
     const imageUrl = document.getElementById('article-image-input').value;
@@ -861,7 +879,7 @@ if (articleForm) {
     const article = {
       title,
       title_lowercase: title.toLowerCase(),
-      writer: writer || '', // Store empty string if no writer provided
+      writer: writer || '',
       summary,
       content,
       image: imageUrl || '',
@@ -901,7 +919,7 @@ const previewButton = document.getElementById('preview-button');
 if (previewButton) {
   previewButton.addEventListener('click', () => {
     const title = document.getElementById('article-title-input').value;
-    const writer = document.getElementById('article-writer-input').value.trim(); // New writer field
+    const writer = document.getElementById('article-writer-input').value.trim();
     const summary = document.getElementById('article-summary-input').value;
     const content = quill ? quill.root.innerHTML : document.getElementById('article-content-input')?.value || '';
     const image = document.getElementById('article-image-input').value;
@@ -932,7 +950,7 @@ if (previewButton) {
     }
 
     document.getElementById('preview-title').textContent = title;
-    document.getElementById('preview-writer').textContent = `By ${writer || 'Anonymous'}`; // Display writer or Anonymous
+    document.getElementById('preview-writer').textContent = `By ${writer || 'Anonymous'}`;
     document.getElementById('preview-summary').textContent = summary;
     document.getElementById('preview-content').innerHTML = content;
     document.getElementById('preview-category').textContent = category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -941,6 +959,8 @@ if (previewButton) {
     const previewImage = document.getElementById('preview-image');
     if (image && isValidUrl(image)) {
       previewImage.src = image;
+      previewImage.srcset = `${image} 1200w, ${image} 768w, ${image} 480w`;
+      previewImage.sizes = '(max-width: 480px) 100vw, (max-width: 768px) 80vw, 800px';
       previewImage.style.display = 'block';
     } else {
       previewImage.style.display = 'none';
@@ -978,7 +998,7 @@ async function deleteArticle(articleId) {
     try {
       await withRetry(() => deleteDoc(doc(db, 'articles', articleId)));
       alert('Article deleted successfully!');
-      loadAdminArticles(); // Refresh the article list
+      loadAdminArticles();
     } catch (error) {
       console.error('Error deleting article:', error.message);
       displayErrorMessage('#article-list', 'Failed to delete article: ' + error.message);
@@ -1023,7 +1043,7 @@ async function loadAdminArticles() {
           const article = docSnap.data();
           document.getElementById('article-id').value = articleId;
           document.getElementById('article-title-input').value = article.title || '';
-          document.getElementById('article-writer-input').value = article.writer || ''; // Populate writer field
+          document.getElementById('article-writer-input').value = article.writer || '';
           document.getElementById('article-summary-input').value = article.summary || '';
           if (quill) {
             quill.root.innerHTML = article.content || '';
@@ -1065,10 +1085,9 @@ async function searchAdminArticles() {
     let q;
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     if (datePattern.test(searchInput)) {
-      // Search by date
       const startDate = new Date(searchInput);
       const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 1); // Include the entire day
+      endDate.setDate(endDate.getDate() + 1);
       q = query(
         collection(db, 'articles'),
         where('createdAt', '>=', startDate),
@@ -1076,7 +1095,6 @@ async function searchAdminArticles() {
         orderBy('createdAt', 'desc')
       );
     } else {
-      // Search by title
       q = query(
         collection(db, 'articles'),
         where('title_lowercase', '>=', searchInput.toLowerCase()),
@@ -1111,7 +1129,6 @@ async function searchAdminArticles() {
       articleList.appendChild(articleElement);
     });
 
-    // Re-attach event listeners for edit and delete buttons
     document.querySelectorAll('.edit-button').forEach(button => {
       button.addEventListener('click', async () => {
         const articleId = button.dataset.id;
@@ -1121,7 +1138,7 @@ async function searchAdminArticles() {
           const article = docSnap.data();
           document.getElementById('article-id').value = articleId;
           document.getElementById('article-title-input').value = article.title || '';
-          document.getElementById('article-writer-input').value = article.writer || ''; // Populate writer field
+          document.getElementById('article-writer-input').value = article.writer || '';
           document.getElementById('article-summary-input').value = article.summary || '';
           if (quill) {
             quill.root.innerHTML = article.content || '';
@@ -1411,7 +1428,6 @@ document.addEventListener('DOMContentLoaded', () => {
               document.getElementById('admin-content').style.display = 'block';
               document.getElementById('logout-button').style.display = 'inline-block';
               loadAdminArticles();
-              // Add event listeners for search and clear buttons
               const searchButton = document.getElementById('article-search-button');
               const clearButton = document.getElementById('article-search-clear');
               if (searchButton) {
@@ -1422,7 +1438,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (clearButton) {
                 clearButton.addEventListener('click', () => {
                   document.getElementById('article-search-input').value = '';
-                  loadAdminArticles(); // Reset to full article list
+                  loadAdminArticles();
                 });
               }
             } else {

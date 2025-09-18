@@ -126,7 +126,16 @@
           <p id="article-meta" class="article-meta">By Anonymous</p>
           <span id="article-breaking-news" class="breaking-news-badge" style="display: none;">Breaking News</span>
           <span id="article-verified" class="verified-badge" style="display: none;">Verified</span>
-          <img id="article-image" src="https://via.placeholder.com/800x400" alt="Article Image" style="display: none;" loading="lazy" onerror="this.src='https://via.placeholder.com/800x400'; console.warn('Article image failed to load:', this.src);">
+          <div class="article-image-container">
+            <img id="article-image" 
+                 src="https://via.placeholder.com/800x400" 
+                 srcset="https://via.placeholder.com/400x200 480w, https://via.placeholder.com/800x400 768w, https://via.placeholder.com/1200x600 1200w" 
+                 sizes="(max-width: 480px) 100vw, (max-width: 768px) 80vw, 800px" 
+                 alt="Article Image" 
+                 style="display: none;" 
+                 loading="lazy" 
+                 onerror="this.src='https://via.placeholder.com/800x400'; console.warn('Article image failed to load:', this.src);">
+          </div>
           <video id="article-video" controls style="display: none;"></video>
           <div id="article-content">
             <p>Loading content...</p>
