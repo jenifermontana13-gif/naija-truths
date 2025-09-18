@@ -456,15 +456,36 @@ async function fetchLatestNewsArticles(reset = false, loadMoreButton, category =
 
 // Load category articles
 async function loadCategoryArticles() {
+  // Get category from URL
   const urlParams = new URLSearchParams(window.location.search);
   const category = urlParams.get('cat');
-  if (!db || !category) return;
+  console.log('Category from URL:', category); // Debug: Log the category parameter
+
+  if (!db) {
+    console.error('Database not initialized');
+    displayErrorMessage('#category-articles', 'Unable to load articles: Database not initialized. Check Firebase configuration in Netlify.');
+    return;
+  }
+
+  if (!category) {
+    console.error('No category provided in URL');
+    displayErrorMessage('#category-articles', 'No category specified in the URL. Please select a category from the navigation.');
+    return;
+  }
 
   const categoryTitle = document.getElementById('category-title');
   const categoryArticles = document.getElementById('category-articles');
-  if (!categoryTitle || !categoryArticles) return;
+  if (!categoryTitle || !categoryArticles) {
+    console.error('Category title or articles container not found');
+    displayErrorMessage('.category-section', 'Page elements missing. Check the HTML structure of category.html.');
+    return;
+  }
 
-  const formattedCategory = category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  // Format category for display (e.g., 'economy-business' -> 'Economy & Business')
+  const formattedCategory = category
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' & ');
   categoryTitle.textContent = formattedCategory;
   document.title = `Naija Truths - ${formattedCategory}`;
   document.querySelector('meta[name="description"]').setAttribute('content', `Explore ${formattedCategory} news on Naija Truths.`);
@@ -472,44 +493,54 @@ async function loadCategoryArticles() {
   document.querySelector('meta[property="og:description"]').setAttribute('content', `Explore ${formattedCategory} news on Naija Truths.`);
   document.querySelector('meta[property="og:image"]').setAttribute('content', 'https://via.placeholder.com/1200x630');
 
+  // Clear existing content and reset pagination
   lastVisibleCategory = null;
-  categoryArticles.innerHTML = '';
+  categoryArticles.innerHTML = '<p>Loading articles...</p>'; // Show loading state
   await fetchCategoryArticles(category, true);
 }
 
 async function fetchCategoryArticles(category, reset = false) {
   const categoryArticles = document.getElementById('category-articles');
   const loadMoreButton = document.querySelector('.category-section .load-more-button');
-  if (!db || !categoryArticles) return;
+  if (!db || !categoryArticles) {
+    console.error('Database or category articles container not initialized');
+    displayErrorMessage('#category-articles', 'Unable to load articles: Database or page elements not initialized.');
+    return;
+  }
 
   if (reset) {
     lastVisibleCategory = null;
     categoryArticles.innerHTML = '';
   }
 
+  // Query articles with the exact category value
   let q = query(
     collection(db, 'articles'),
-    where('category', '==', category),
+    where('category', '==', category), // Use exact category from URL
     orderBy('createdAt', 'desc'),
     limit(articlesPerPage)
   );
   if (lastVisibleCategory) q = query(q, startAfter(lastVisibleCategory));
 
   try {
+    console.log(`Fetching articles for category: ${category}`); // Debug: Log the query
     const snapshot = await withRetry(() => getDocs(q));
+    console.log(`Found ${snapshot.size} articles for category: ${category}`); // Debug: Log number of articles
+
     if (snapshot.empty && categoryArticles.innerHTML === '') {
-      categoryArticles.innerHTML = '<p>No articles found in this category.</p>';
+      console.warn(`No articles found for category: ${category}`);
+      categoryArticles.innerHTML = '<p>No articles found in this category. Check if articles exist in Firestore with category "${category}".</p>';
       if (loadMoreButton) loadMoreButton.style.display = 'none';
       return;
     }
 
     snapshot.forEach(doc => {
       const article = doc.data();
-      const articleElement = document.createElement('div');
+      const articleElement = document.createElement('article'); // Match placeholder tag
       articleElement.classList.add('news-card');
       articleElement.dataset.id = doc.id;
       const imageUrl = article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200';
-      console.log(`Category article ID: ${doc.id}, Image URL: ${imageUrl}`);
+      console.log(`Rendering article ID: ${doc.id}, Title: ${article.title}, Image URL: ${imageUrl}`);
       articleElement.innerHTML = `
         <a href="article.html?id=${doc.id}" class="article-link">
           <img src="${imageUrl}" 
@@ -520,9 +551,8 @@ async function fetchCategoryArticles(category, reset = false) {
                onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
-          <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
-          ${article.breakingNews ? '<span class="breaking-news-badge">Breaking News</span>' : ''}
-          ${article.verified ? '<span class="verified-badge">Verified</span>' : ''}
+          ${article.breakingNews ? '<span class="breaking-news-badge" style="display: block;">Breaking News</span>' : '<span class="breaking-news-badge" style="display: none;">Breaking News</span>'}
+          ${article.verified ? '<span class="verified-badge" style="display: block;">Verified</span>' : '<span class="verified-badge" style="display: none;">Verified</span>'}
         </a>
       `;
       categoryArticles.appendChild(articleElement);
@@ -531,8 +561,16 @@ async function fetchCategoryArticles(category, reset = false) {
     lastVisibleCategory = snapshot.docs[snapshot.docs.length - 1];
     if (loadMoreButton) loadMoreButton.style.display = snapshot.size < articlesPerPage ? 'none' : 'block';
   } catch (error) {
-    console.error('Error loading category articles:', error.message);
-    displayErrorMessage('#category-articles', 'Failed to load articles. Please try again.');
+    console.error('Error loading category articles:', error.message, error.code);
+    let errorMessage = `Failed to load articles for category "${category}": ${error.message}. `;
+    if (error.code === 'permission-denied') {
+      errorMessage += 'Check Firestore security rules to ensure public read access to the "articles" collection.';
+    } else if (error.code === 'unavailable' || error.code === 'deadline-exceeded') {
+      errorMessage += 'Network issue detected. Check your internet connection and try again.';
+    } else {
+      errorMessage += `Verify that articles exist in Firestore with category "${category}" or try refreshing the page.`;
+    }
+    displayErrorMessage('#category-articles', errorMessage);
   }
 }
 
