@@ -150,7 +150,6 @@ async function loadArticles() {
       console.log(`Loaded ${snapshot.size} articles for ${selector}`, snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       if (snapshot.empty) {
         console.warn(`No articles found for ${selector} with filter:`, filter);
-        // Fallback for breaking news: fetch the most recent article if no breaking news found
         if (selector === '.breaking-news-card') {
           console.log('No breaking news articles found, attempting fallback to latest article');
           let fallbackQuery = query(collection(db, 'articles'), orderBy('createdAt', 'desc'), limit(1));
@@ -166,7 +165,7 @@ async function loadArticles() {
               const imageUrl = article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200';
               console.log(`Rendering fallback breaking news article ID: ${docId}, Image URL: ${imageUrl}, CreatedAt:`, article.createdAt);
               const img = link.querySelector('img');
-              img.src = ''; // Clear src to avoid stale images
+              img.src = '';
               img.src = imageUrl;
               img.alt = article.title || 'Article Image';
               img.srcset = `${imageUrl} 400w, ${imageUrl} 200w`;
@@ -191,7 +190,7 @@ async function loadArticles() {
                 link.appendChild(timeElement);
               }
               const badge = element.querySelector('.breaking-news-badge');
-              if (badge) badge.style.display = 'none'; // Hide breaking news badge for fallback
+              if (badge) badge.style.display = 'none';
               element.dataset.placeholder = 'false';
             }
           } else {
@@ -219,7 +218,7 @@ async function loadArticles() {
           const imageUrl = article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200';
           console.log(`Rendering ${selector} article ID: ${doc.id}, Image URL: ${imageUrl}, CreatedAt:`, article.createdAt);
           const img = link.querySelector('img');
-          img.src = ''; // Clear src to avoid stale images
+          img.src = '';
           img.src = imageUrl;
           img.alt = article.title || 'Article Image';
           img.srcset = `${imageUrl} 400w, ${imageUrl} 200w`;
@@ -232,7 +231,7 @@ async function loadArticles() {
           };
           img.onload = () => {
             console.log(`Image loaded successfully for article ID: ${doc.id}, URL: ${img.src}`);
-            img.style.display = 'block'; // Ensure image is visible
+            img.style.display = 'block';
           };
           link.setAttribute('href', `article.html?id=${doc.id}`);
           link.querySelector('h2, h3').textContent = article.title || 'Untitled Article';
@@ -1077,41 +1076,81 @@ async function loadAdminArticles() {
 async function searchAdminArticles() {
   const searchInput = document.getElementById('article-search-input').value.trim();
   const articleList = document.getElementById('article-list');
-  if (!db || !articleList) return;
+  if (!db || !articleList) {
+    displayErrorMessage('#article-list', 'Database or article list not initialized. Please refresh the page.');
+    return;
+  }
 
   articleList.innerHTML = '<p>Loading articles...</p>';
 
   try {
-    let q;
+    let snapshot;
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-    if (datePattern.test(searchInput)) {
-      const startDate = new Date(searchInput);
+    
+    if (!searchInput) {
+      // Load all articles if search input is empty
+      const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'), limit(50));
+      snapshot = await withRetry(() => getDocs(q));
+    } else if (datePattern.test(searchInput)) {
+      // Search by date
+      const startDate = new Date(searchInput + 'T00:00:00Z');
+      if (isNaN(startDate.getTime())) {
+        articleList.innerHTML = '';
+        displayErrorMessage('#article-list', 'Invalid date format. Please use YYYY-MM-DD (e.g., 2025-09-18).');
+        return;
+      }
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 1);
-      q = query(
+      const q = query(
         collection(db, 'articles'),
         where('createdAt', '>=', startDate),
         where('createdAt', '<', endDate),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(50)
       );
+      snapshot = await withRetry(() => getDocs(q));
     } else {
-      q = query(
+      // Search by title or writer
+      const titleQuery = query(
         collection(db, 'articles'),
         where('title_lowercase', '>=', searchInput.toLowerCase()),
         where('title_lowercase', '<=', searchInput.toLowerCase() + '\uf8ff'),
         orderBy('title_lowercase'),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(50)
       );
+      const writerQuery = query(
+        collection(db, 'articles'),
+        where('writer', '>=', searchInput),
+        where('writer', '<=', searchInput + '\uf8ff'),
+        orderBy('writer'),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      
+      // Execute both queries and combine results
+      const [titleSnapshot, writerSnapshot] = await Promise.all([
+        withRetry(() => getDocs(titleQuery)),
+        withRetry(() => getDocs(writerQuery))
+      ]);
+      
+      // Combine and deduplicate results
+      const articles = new Map();
+      titleSnapshot.forEach(doc => articles.set(doc.id, doc));
+      writerSnapshot.forEach(doc => articles.set(doc.id, doc));
+      snapshot = {
+        docs: Array.from(articles.values()),
+        empty: articles.size === 0
+      };
     }
 
-    const snapshot = await withRetry(() => getDocs(q));
     articleList.innerHTML = '';
     if (snapshot.empty) {
-      articleList.innerHTML = '<p>No articles found.</p>';
+      articleList.innerHTML = '<p>No articles found for the given search.</p>';
       return;
     }
 
-    snapshot.forEach(doc => {
+    snapshot.docs.forEach(doc => {
       const article = doc.data();
       const articleElement = document.createElement('div');
       articleElement.classList.add('news-card');
@@ -1129,6 +1168,7 @@ async function searchAdminArticles() {
       articleList.appendChild(articleElement);
     });
 
+    // Attach event listeners for edit and delete buttons
     document.querySelectorAll('.edit-button').forEach(button => {
       button.addEventListener('click', async () => {
         const articleId = button.dataset.id;
@@ -1163,8 +1203,19 @@ async function searchAdminArticles() {
       });
     });
   } catch (error) {
-    console.error('Error searching admin articles:', error.message);
-    displayErrorMessage('#article-list', 'Failed to load articles. Please try again.');
+    console.error('Error searching admin articles:', error.message, error.code);
+    let errorMessage = 'Failed to load articles: ' + error.message + '. ';
+    if (error.code === 'permission-denied') {
+      errorMessage += 'Check Firestore security rules to ensure admin read access to the "articles" collection.';
+    } else if (error.code === 'unavailable' || error.code === 'deadline-exceeded') {
+      errorMessage += 'Network issue detected. Check your internet connection and try again.';
+    } else if (error.code === 'invalid-argument') {
+      errorMessage += 'Invalid search query. Ensure the date is in YYYY-MM-DD format or check the title/writer input.';
+    } else {
+      errorMessage += 'Please verify the search query or try refreshing the page.';
+    }
+    articleList.innerHTML = '';
+    displayErrorMessage('#article-list', errorMessage);
   }
 }
 
