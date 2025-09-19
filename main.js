@@ -101,7 +101,7 @@ function formatTimestamp(timestamp) {
   }
 }
 
-// Initialize Quill editor
+// Initialize Quill editor and ripple effect
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('article-content-input') && typeof Quill !== 'undefined') {
     quill = new Quill('#article-content-input', {
@@ -118,6 +118,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Ripple effect for buttons and links
+  document.querySelectorAll('.ripple-btn').forEach(element => {
+    element.addEventListener('click', function (e) {
+      if (element.disabled) return;
+      const rect = element.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple');
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      const diameter = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${diameter}px`;
+      element.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
 });
 
 // Load articles for homepage
@@ -456,10 +474,9 @@ async function fetchLatestNewsArticles(reset = false, loadMoreButton, category =
 
 // Load category articles
 async function loadCategoryArticles() {
-  // Get category from URL
   const urlParams = new URLSearchParams(window.location.search);
   const category = urlParams.get('cat');
-  console.log('Category from URL:', category); // Debug: Log the category parameter
+  console.log('Category from URL:', category);
 
   if (!db) {
     console.error('Database not initialized');
@@ -481,7 +498,6 @@ async function loadCategoryArticles() {
     return;
   }
 
-  // Format category for display (e.g., 'economy-business' -> 'Economy & Business')
   const formattedCategory = category
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -493,9 +509,8 @@ async function loadCategoryArticles() {
   document.querySelector('meta[property="og:description"]').setAttribute('content', `Explore ${formattedCategory} news on Naija Truths.`);
   document.querySelector('meta[property="og:image"]').setAttribute('content', 'https://via.placeholder.com/1200x630');
 
-  // Clear existing content and reset pagination
   lastVisibleCategory = null;
-  categoryArticles.innerHTML = '<p>Loading articles...</p>'; // Show loading state
+  categoryArticles.innerHTML = '<p>Loading articles...</p>';
   await fetchCategoryArticles(category, true);
 }
 
@@ -513,19 +528,18 @@ async function fetchCategoryArticles(category, reset = false) {
     categoryArticles.innerHTML = '';
   }
 
-  // Query articles with the exact category value
   let q = query(
     collection(db, 'articles'),
-    where('category', '==', category), // Use exact category from URL
+    where('category', '==', category),
     orderBy('createdAt', 'desc'),
     limit(articlesPerPage)
   );
   if (lastVisibleCategory) q = query(q, startAfter(lastVisibleCategory));
 
   try {
-    console.log(`Fetching articles for category: ${category}`); // Debug: Log the query
+    console.log(`Fetching articles for category: ${category}`);
     const snapshot = await withRetry(() => getDocs(q));
-    console.log(`Found ${snapshot.size} articles for category: ${category}`); // Debug: Log number of articles
+    console.log(`Found ${snapshot.size} articles for category: ${category}`);
 
     if (snapshot.empty && categoryArticles.innerHTML === '') {
       console.warn(`No articles found for category: ${category}`);
@@ -536,7 +550,7 @@ async function fetchCategoryArticles(category, reset = false) {
 
     snapshot.forEach(doc => {
       const article = doc.data();
-      const articleElement = document.createElement('article'); // Match placeholder tag
+      const articleElement = document.createElement('article');
       articleElement.classList.add('news-card');
       articleElement.dataset.id = doc.id;
       const imageUrl = article.image && isValidUrl(article.image) ? article.image : 'https://via.placeholder.com/400x200';
@@ -551,8 +565,9 @@ async function fetchCategoryArticles(category, reset = false) {
                onerror="this.src='https://via.placeholder.com/400x200'; this.srcset='https://via.placeholder.com/400x200 400w, https://via.placeholder.com/200x100 200w'; this.sizes='(max-width: 767px) 200px, 400px';">
           <h3>${article.title || 'Untitled Article'}</h3>
           <p>${article.summary || (article.content ? article.content.substring(0, 100) + '...' : 'No summary available')}</p>
-          ${article.breakingNews ? '<span class="breaking-news-badge" style="display: block;">Breaking News</span>' : '<span class="breaking-news-badge" style="display: none;">Breaking News</span>'}
-          ${article.verified ? '<span class="verified-badge" style="display: block;">Verified</span>' : '<span class="verified-badge" style="display: none;">Verified</span>'}
+          <p class="article-time">Posted: ${formatTimestamp(article.createdAt)}</p>
+          ${article.breakingNews ? '<span class="breaking-news-badge">Breaking News</span>' : ''}
+          ${article.verified ? '<span class="verified-badge">Verified</span>' : ''}
         </a>
       `;
       categoryArticles.appendChild(articleElement);
@@ -1126,11 +1141,9 @@ async function searchAdminArticles() {
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
     
     if (!searchInput) {
-      // Load all articles if search input is empty
       const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'), limit(50));
       snapshot = await withRetry(() => getDocs(q));
     } else if (datePattern.test(searchInput)) {
-      // Search by date
       const startDate = new Date(searchInput + 'T00:00:00Z');
       if (isNaN(startDate.getTime())) {
         articleList.innerHTML = '';
@@ -1148,7 +1161,6 @@ async function searchAdminArticles() {
       );
       snapshot = await withRetry(() => getDocs(q));
     } else {
-      // Search by title or writer
       const titleQuery = query(
         collection(db, 'articles'),
         where('title_lowercase', '>=', searchInput.toLowerCase()),
@@ -1166,13 +1178,11 @@ async function searchAdminArticles() {
         limit(50)
       );
       
-      // Execute both queries and combine results
       const [titleSnapshot, writerSnapshot] = await Promise.all([
         withRetry(() => getDocs(titleQuery)),
         withRetry(() => getDocs(writerQuery))
       ]);
       
-      // Combine and deduplicate results
       const articles = new Map();
       titleSnapshot.forEach(doc => articles.set(doc.id, doc));
       writerSnapshot.forEach(doc => articles.set(doc.id, doc));
@@ -1206,7 +1216,6 @@ async function searchAdminArticles() {
       articleList.appendChild(articleElement);
     });
 
-    // Attach event listeners for edit and delete buttons
     document.querySelectorAll('.edit-button').forEach(button => {
       button.addEventListener('click', async () => {
         const articleId = button.dataset.id;
@@ -1477,20 +1486,53 @@ document.querySelectorAll('a[href*="#"]').forEach(anchor => {
 window.addEventListener('scroll', () => {
   const parallax = document.querySelector('.parallax-bg');
   if (parallax) {
-    const scrollPosition = window.pageYOffset;
+    const scrollPosition = document.documentElement.scrollTop || document.body.scrollTop;
     parallax.style.transform = `translateY(${scrollPosition * 0.5}px)`;
   }
 });
 
 // Scroll-to-top button
-const scrollToTop = document.querySelector('.scroll-to-top');
-if (scrollToTop) {
-  window.addEventListener('scroll', () => {
-    scrollToTop.style.display = window.pageYOffset > 200 ? 'block' : 'none';
-  });
-  scrollToTop.addEventListener('click', () => {
+const scrollToTopWrapper = document.querySelector('.scroll-to-top-wrapper');
+const scrollToTopButton = document.querySelector('.scroll-to-top');
+
+if (scrollToTopWrapper && scrollToTopButton) {
+  // Update button visibility
+  function updateScrollButtonVisibility() {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    if (scrollTop > 100) {
+      scrollToTopWrapper.classList.remove('hidden');
+      scrollToTopWrapper.classList.add('visible');
+    } else {
+      scrollToTopWrapper.classList.remove('visible');
+      scrollToTopWrapper.classList.add('hidden');
+    }
+  }
+
+  // Scroll event listener
+  window.addEventListener('scroll', updateScrollButtonVisibility);
+
+  // Initialize button attributes for accessibility
+  scrollToTopButton.setAttribute('tabindex', '0');
+  scrollToTopButton.setAttribute('role', 'button');
+  scrollToTopButton.setAttribute('aria-label', 'Scroll to top');
+
+  // Click event for scroll-to-top
+  scrollToTopButton.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+
+  // Keyboard event for accessibility
+  scrollToTopButton.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Initial update
+  updateScrollButtonVisibility();
+} else {
+  console.warn('Scroll-to-top wrapper or button not found in DOM.');
 }
 
 // Initialize on DOM load

@@ -32,6 +32,7 @@
   <script type="module" src="main.js"></script>
 </head>
 <body>
+  <!-- Unchanged content (preloader, noscript, header, main, footer) -->
   <div id="preloader">
     <div class="spinner"></div>
   </div>
@@ -39,7 +40,7 @@
     <div class="no-js">
       <header class="header">
         <div class="logo">
-          <svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+          <svg width="100" height="50" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="ntGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
@@ -51,7 +52,12 @@
             </defs>
             <text x="10" y="50" font-family="Bebas Neue, sans-serif" font-weight="900" font-size="56" fill="url(#ntGradient)" stroke="#28a745" stroke-width="3" letter-spacing="-4" filter="url(#shadow)">NT</text>
           </svg>
-          <span class="site-title">Naija Truths</span>
+          <div class="header-inner">
+            <div class="header-title-wrapper">
+              <span class="site-title">Naija Truths</span>
+              <span class="site-subtitle">• Unfiltered • Unbiased • Unafraid</span>
+            </div>
+          </div>
         </div>
       </header>
       <div class="content">
@@ -91,7 +97,7 @@
   </noscript>
   <header class="header">
     <div class="logo">
-      <svg width="140" height="70" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
+      <svg width="100" height="50" viewBox="0 0 140 70" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="ntGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
@@ -103,11 +109,16 @@
         </defs>
         <text x="10" y="50" font-family="Bebas Neue, sans-serif" font-weight="900" font-size="56" fill="url(#ntGradient)" stroke="#28a745" stroke-width="3" letter-spacing="-4" class="logo-text" filter="url(#shadow)">NT</text>
       </svg>
-      <span class="site-title">Naija Truths</span>
+    </div>
+    <div class="header-inner">
+      <div class="header-title-wrapper">
+        <span class="site-title">Naija Truths</span>
+        <span class="site-subtitle">• Unfiltered • Unbiased • Unafraid</span>
+      </div>
     </div>
     <form class="search-form" role="search" action="search.html">
       <input type="search" id="search-input" name="q" placeholder="Search articles..." aria-label="Search articles" class="search-input">
-      <button type="submit" class="search-button" aria-label="Search">
+      <button type="submit" class="search-button ripple-btn" aria-label="Search">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -116,30 +127,30 @@
     </form>
     <nav class="desktop-nav" role="navigation">
       <ul class="nav-links">
-        <li><a href="index.html" class="home-button" aria-label="Go to homepage">Home</a></li>
-        <li><a href="#breaking-news">Breaking News</a></li>
+        <li><a href="index.html" class="home-button ripple-btn light" aria-label="Go to homepage">Home</a></li>
+        <li><a href="#breaking-news" class="ripple-btn light">Breaking News</a></li>
         <li class="dropdown">
-          <a href="#politics" class="dropbtn" aria-haspopup="true" aria-expanded="false">Politics ▼</a>
+          <a href="#politics" class="dropbtn ripple-btn light" aria-haspopup="true" aria-expanded="false">Politics ▼</a>
           <div class="dropdown-content">
-            <a href="category.html?cat=politics">All Politics</a>
+            <a href="category.html?cat=politics" class="ripple-btn light">All Politics</a>
           </div>
         </li>
-        <li><a href="#fact-check">Fact-Check</a></li>
+        <li><a href="#fact-check" class="ripple-btn light">Fact-Check</a></li>
         <li class="dropdown">
-          <a href="#" class="dropbtn" aria-haspopup="true" aria-expanded="false">More ▼</a>
+          <a href="#" class="dropbtn ripple-btn light" aria-haspopup="true" aria-expanded="false">More ▼</a>
           <div class="dropdown-content">
-            <a href="category.html?cat=economy-business">Economy & Business</a>
-            <a href="category.html?cat=sports">Sports</a>
-            <a href="category.html?cat=entertainment">Entertainment</a>
-            <a href="category.html?cat=security-justice">Security & Justice</a>
-            <a href="category.html?cat=society-culture">Society & Culture</a>
-            <a href="category.html?cat=health-education">Health & Education</a>
-            <a href="category.html?cat=techlens">TechLens</a>
-            <a href="category.html?cat=investigations">Investigations</a>
-            <a href="category.html?cat=opinion-editorials">Opinion & Editorials</a>
-            <a href="category.html?cat=columns">Columns</a>
-            <a href="category.html?cat=infographics">Infographics</a>
-            <a href="category.html?cat=videos-documentaries">Videos & Documentaries</a>
+            <a href="category.html?cat=economy-business" class="ripple-btn light">Economy & Business</a>
+            <a href="category.html?cat=sports" class="ripple-btn light">Sports</a>
+            <a href="category.html?cat=entertainment" class="ripple-btn light">Entertainment</a>
+            <a href="category.html?cat=security-justice" class="ripple-btn light">Security & Justice</a>
+            <a href="category.html?cat=society-culture" class="ripple-btn light">Society & Culture</a>
+            <a href="category.html?cat=health-education" class="ripple-btn light">Health & Education</a>
+            <a href="category.html?cat=techlens" class="ripple-btn light">TechLens</a>
+            <a href="category.html?cat=investigations" class="ripple-btn light">Investigations</a>
+            <a href="category.html?cat=opinion-editorials" class="ripple-btn light">Opinion & Editorials</a>
+            <a href="category.html?cat=columns" class="ripple-btn light">Columns</a>
+            <a href="category.html?cat=infographics" class="ripple-btn light">Infographics</a>
+            <a href="category.html?cat=videos-documentaries" class="ripple-btn light">Videos & Documentaries</a>
           </div>
         </li>
       </ul>
@@ -151,22 +162,22 @@
     </div>
     <nav class="mobile-nav" role="navigation" tabindex="-1">
       <ul>
-        <li><a href="index.html" class="home-button" aria-label="Go to homepage">Home</a></li>
-        <li><a href="#breaking-news">Breaking News</a></li>
-        <li><a href="#politics">Politics</a></li>
-        <li><a href="#fact-check">Fact-Check</a></li>
-        <li><a href="category.html?cat=economy-business">Economy & Business</a></li>
-        <li><a href="category.html?cat=sports">Sports</a></li>
-        <li><a href="category.html?cat=entertainment">Entertainment</a></li>
-        <li><a href="category.html?cat=security-justice">Security & Justice</a></li>
-        <li><a href="category.html?cat=society-culture">Society & Culture</a></li>
-        <li><a href="category.html?cat=health-education">Health & Education</a></li>
-        <li><a href="category.html?cat=techlens">TechLens</a></li>
-        <li><a href="category.html?cat=investigations">Investigations</a></li>
-        <li><a href="category.html?cat=opinion-editorials">Opinion & Editorials</a></li>
-        <li><a href="category.html?cat=columns">Columns</a></li>
-        <li><a href="category.html?cat=infographics">Infographics</a></li>
-        <li><a href="category.html?cat=videos-documentaries">Videos & Documentaries</a></li>
+        <li><a href="index.html" class="home-button ripple-btn light" aria-label="Go to homepage">Home</a></li>
+        <li><a href="#breaking-news" class="ripple-btn light">Breaking News</a></li>
+        <li><a href="#politics" class="ripple-btn light">Politics</a></li>
+        <li><a href="#fact-check" class="ripple-btn light">Fact-Check</a></li>
+        <li><a href="category.html?cat=economy-business" class="ripple-btn light">Economy & Business</a></li>
+        <li><a href="category.html?cat=sports" class="ripple-btn light">Sports</a></li>
+        <li><a href="category.html?cat=entertainment" class="ripple-btn light">Entertainment</a></li>
+        <li><a href="category.html?cat=security-justice" class="ripple-btn light">Security & Justice</a></li>
+        <li><a href="category.html?cat=society-culture" class="ripple-btn light">Society & Culture</a></li>
+        <li><a href="category.html?cat=health-education" class="ripple-btn light">Health & Education</a></li>
+        <li><a href="category.html?cat=techlens" class="ripple-btn light">TechLens</a></li>
+        <li><a href="category.html?cat=investigations" class="ripple-btn light">Investigations</a></li>
+        <li><a href="category.html?cat=opinion-editorials" class="ripple-btn light">Opinion & Editorials</a></li>
+        <li><a href="category.html?cat=columns" class="ripple-btn light">Columns</a></li>
+        <li><a href="category.html?cat=infographics" class="ripple-btn light">Infographics</a></li>
+        <li><a href="category.html?cat=videos-documentaries" class="ripple-btn light">Videos & Documentaries</a></li>
       </ul>
     </nav>
   </header>
@@ -184,7 +195,7 @@
             <h2>Breaking News: Major Event Unfolds</h2>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
             <p class="article-time">Posted: Unknown Date</p>
-            <span class="breaking-news-badge" style="display: none;">Breaking News</span>
+            <span class="breaking-news-badge" id="breaking-news-badge-1">Breaking News</span>
           </a>
         </article>
       </div>
@@ -194,8 +205,34 @@
         <h2>Politics</h2>
         <div class="news-grid" id="politics-articles" role="region" aria-live="polite">
           <noscript><p>Please enable JavaScript to view politics articles.</p></noscript>
+          <article class="news-card" data-placeholder="true">
+            <a href="#" class="article-link">
+              <img src="https://via.placeholder.com/400x200" 
+                   srcset="https://via.placeholder.com/200x100 200w, https://via.placeholder.com/400x200 400w" 
+                   sizes="(max-width: 767px) 200px, 400px" 
+                   alt="Politics News 1" loading="lazy">
+              <h3>Politics News Title 1</h3>
+              <p>Investigating the latest political developments. Lorem ipsum dolor sit amet.</p>
+              <p class="article-time">Posted: Unknown Date</p>
+              <span class="breaking-news-badge" id="politics-breaking-news-1" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="politics-verified-1" style="display: none;">Verified</span>
+            </a>
+          </article>
+          <article class="news-card" data-placeholder="true">
+            <a href="#" class="article-link">
+              <img src="https://via.placeholder.com/400x200" 
+                   srcset="https://via.placeholder.com/200x100 200w, https://via.placeholder.com/400x200 400w" 
+                   sizes="(max-width: 767px) 200px, 400px" 
+                   alt="Politics News 2" loading="lazy">
+              <h3>Politics News Title 2</h3>
+              <p>Analysis of recent political events. Consectetur adipiscing elit, sed do eiusmod.</p>
+              <p class="article-time">Posted: Unknown Date</p>
+              <span class="breaking-news-badge" id="politics-breaking-news-2" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="politics-verified-2" style="display: none;">Verified</span>
+            </a>
+          </article>
         </div>
-        <a href="category.html?cat=politics" class="view-more">View More Politics</a>
+        <a href="category.html?cat=politics" class="view-more ripple-btn">View More Politics</a>
       </div>
     </section>
     <section class="fact-check" id="fact-check">
@@ -211,7 +248,8 @@
               <h3>Fact-Check: Claim Title 1</h3>
               <p>Investigating the truth behind recent claims. Lorem ipsum dolor sit amet.</p>
               <p class="article-time">Posted: Unknown Date</p>
-              <span class="verified-badge">Verified</span>
+              <span class="breaking-news-badge" id="fact-check-breaking-news-1" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="fact-check-verified-1">Verified</span>
             </a>
           </article>
           <article class="news-card fact-check-card" data-placeholder="true">
@@ -223,11 +261,12 @@
               <h3>Fact-Check: Claim Title 2</h3>
               <p>Debunking myths with evidence. Consectetur adipiscing elit, sed do eiusmod.</p>
               <p class="article-time">Posted: Unknown Date</p>
-              <span class="verified-badge">Verified</span>
+              <span class="breaking-news-badge" id="fact-check-breaking-news-2" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="fact-check-verified-2">Verified</span>
             </a>
           </article>
         </div>
-        <a href="category.html?cat=fact-check" class="view-more">View More Fact-Checks</a>
+        <a href="category.html?cat=fact-check" class="view-more ripple-btn">View More Fact-Checks</a>
       </div>
     </section>
     <section class="latest-news">
@@ -260,6 +299,8 @@
               <h3>News Title 2</h3>
               <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
               <p class="article-time">Posted: Unknown Date</p>
+              <span class="breaking-news-badge" id="latest-news-breaking-news-2" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="latest-news-verified-2" style="display: none;">Verified</span>
             </a>
           </article>
           <article class="news-card" data-placeholder="true">
@@ -271,10 +312,12 @@
               <h3>News Title 3</h3>
               <p>Nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor.</p>
               <p class="article-time">Posted: Unknown Date</p>
+              <span class="breaking-news-badge" id="latest-news-breaking-news-3" style="display: none;">Breaking News</span>
+              <span class="verified-badge" id="latest-news-verified-3" style="display: none;">Verified</span>
             </a>
           </article>
         </div>
-        <button class="load-more-button" aria-label="Load more news articles">Load More</button>
+        <button class="load-more-button ripple-btn" aria-label="Load more news articles">Load More</button>
       </div>
     </section>
   </main>
@@ -303,7 +346,7 @@
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
           </a>
-          <a href="mailto:info@naijatruths.com" aria-label="Email">
+          <a href="mailto:truthngr@gmail.com" aria-label="Email">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
@@ -314,6 +357,12 @@
       <p class="footer-copy">© 2025 Naija Truths. All rights reserved.</p>
     </div>
   </footer>
-  <button class="scroll-to-top" aria-label="Scroll to top">↑</button>
+  <div class="scroll-to-top-wrapper">
+    <button class="scroll-to-top ripple-btn" aria-label="Scroll to top">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+        <path d="M4 12l8-8 8 8M12 20V4"/>
+      </svg>
+    </button>
+  </div>
 </body>
 </html>
